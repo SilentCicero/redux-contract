@@ -143,7 +143,8 @@ Example Use:
 const SimpleStore = reduxContract({
   abi: contractABI,
   bytecode: contractBytecode,
-  contract: 'SimpleStore'
+  contract: 'SimpleStore',
+  methods: ['new', 'get'] // <-- optional.. only include certain methods in redux state
 });
 
 SimpleStore.new(...);
@@ -152,12 +153,12 @@ SimpleStore.at(...);
 
 ## Todo
 
- - contract methods filter option (only allow some methods to be tracked in the redux state)
-
-   `something like {contract: ..., abi: ..., methods: ['get']}`
-
  - better method and logic handling
  - more tests (this module is not heavily tested yet)
+
+## Known Pitfalls
+ 
+ - you must provide a filter object for events.. `so MyFilter({}, callback..)`
 
 ## Test
 

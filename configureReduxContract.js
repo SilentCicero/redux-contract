@@ -18,6 +18,9 @@ function ReduxContract(opts) {
       methodName = 'new';
     }
 
+    // if methods filter is stated and method is in filter
+    if (opts.methods && opts.methods.indexOf(method.name) === -1) return undefined;
+
     // setup default method reducer
     methods[methodName] = {
       inputs: [],
@@ -59,6 +62,9 @@ function ReduxContract(opts) {
       // if the method is a constructor halt
       if (method.type === 'constructor') return;
 
+      // if methods filter is stated and method is in filter
+      if (opts.methods && opts.methods.indexOf(method.name) === -1) return;
+
       // override method
       newContract[method.name] = (..._args) => {
         // convert the method arguments to an array
@@ -98,7 +104,7 @@ function ReduxContract(opts) {
 
         // setup callback override
         args[inputsLength + 1] = (methodError, _methodResult) => {
-          const methodResult = _methodResult;
+          let methodResult = _methodResult;
 
           // if an error occured fire method error action
           if (methodError) {
@@ -106,19 +112,29 @@ function ReduxContract(opts) {
                 method.name, method.type, inputs, txObject, methodError));
           }
 
-          // if event result
-          if (methodResult.block) {
-            delete methodResult.block;
-          }
-
           // if result, fire method success action
           if (!methodError && methodResult) {
+            if (methodResult.block) {
+              methodResult = {
+                blockNumber: _methodResult.blockNumber,
+                topics: _methodResult.topics,
+                address: _methodResult.address,
+                transactionHash: _methodResult.transactionHash,
+                transactionIndex: _methodResult.transactionIndex,
+                blockHash: _methodResult.blockHash,
+                logIndex: _methodResult.logIndex
+              };
+            }
+
+            // handle inputs
+            if (method.type === 'event') inputs = txObject;
+
             opts._store.dispatch(Actions.methodSuccess(opts.contract,
               method.name, method.type, inputs, txObject, bigNumberToString(methodResult)));
           }
 
           // passthrough callback with error and result
-          return callback(methodError, methodResult);
+          return callback(methodError, _methodResult);
         };
 
         // passthrough with new arguments
@@ -159,10 +175,18 @@ function ReduxContract(opts) {
     // get the callback method
     const callback = args[inputsLength + 1];
 
+    // bypass state changes
+    let dispatchNewActions = true;
+
+    // bypass state changes if `new` method is not included
+    if (opts.methods && opts.methods.indexOf('new') === -1) {
+      dispatchNewActions = false;
+    }
+
     // override the callback and add in state management
     args[inputsLength + 1] = (error, result) => {
       // if an error occurs, dispatch new contract error
-      if (error) {
+      if (error && dispatchNewActions) {
         opts._store.dispatch(Actions.newError(opts.contract, inputs, txObject, error));
         return callback(error, result);
       }
@@ -170,14 +194,18 @@ function ReduxContract(opts) {
       // handle result
       if (typeof result !== 'undefined') {
         if (typeof result.address !== 'undefined') {
-          opts._store.dispatch(Actions.newSuccess(opts.contract, result.address));
+          if (dispatchNewActions) {
+            opts._store.dispatch(Actions.newSuccess(opts.contract, result.address));
+          }
           const newResult = atMethod(result.address);
           newResult.address = result.address;
           newResult.transactionHash = result.transactionHash;
           callback(error, newResult);
         } else {
-          opts._store.dispatch(Actions.newPending(opts.contract,
-              methods, inputs, txObject, result.transactionHash));
+          if (dispatchNewActions) {
+            opts._store.dispatch(Actions.newPending(opts.contract,
+                methods, inputs, txObject, result.transactionHash));
+          }
           callback(error, result);
         }
       }

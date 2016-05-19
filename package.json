@@ -1,6 +1,6 @@
 {
-  "name": "redux-contracts",
-  "version": "0.1.0",
+  "name": "redux-contract",
+  "version": "0.1.1",
   "description": "A higher order web3 contract decorator for dApps using redux",
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/silentcicero/redux-contracts.git"
+    "url": "git+ssh://git@github.com/silentcicero/redux-contract.git"
   },
   "keywords": [
     "ethereum",
@@ -20,9 +20,9 @@
   "author": "= <=>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/silentcicero/redux-contracts/issues"
+    "url": "https://github.com/silentcicero/redux-contract/issues"
   },
-  "homepage": "https://github.com/silentcicero/redux-contracts#readme",
+  "homepage": "https://github.com/silentcicero/redux-contract#readme",
   "devDependencies": {
     "babel-core": "^6.3.21",
     "babel-eslint": "^6.0.4",

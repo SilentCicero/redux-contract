@@ -73,7 +73,7 @@ export default function CONTRACTS(state = DEFAULT_CONTRACTS_STATE, action) {
         }
       };
 
-      if (action.methodType === 'event') {
+      if (action.methodType !== 'event') {
         errorStateObj[action.contract][action.methodName].txObject = action.methodTxObject;
       }
 
@@ -87,13 +87,12 @@ export default function CONTRACTS(state = DEFAULT_CONTRACTS_STATE, action) {
           [action.methodName]: {
             error: null,
             inputs: action.methodInputs,
-            txObject: action.methodTxObject,
             result: action.methodResult
           }
         }
       };
 
-      if (action.methodType === 'event') {
+      if (action.methodType !== 'event') {
         successStateObj[action.contract][action.methodName].txObject = action.methodTxObject;
       }
 
